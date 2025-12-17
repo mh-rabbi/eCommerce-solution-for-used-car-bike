@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/vehicle.dart';
+import '../config/app_config.dart';
 import 'api_service.dart';
 
 class VehicleService {
@@ -26,12 +27,28 @@ class VehicleService {
 
   Future<Vehicle> createVehicle(Vehicle vehicle) async {
     try {
-      print('Creating vehicle with data: ${vehicle.toJson()}');
-      final response = await _apiService.post('/vehicles', vehicle.toJson(), requireAuth: true);
-      print('Vehicle created successfully: $response');
+      if (AppConfig.isDebugMode) {
+        print('=================================');
+        print('🚗 Creating vehicle');
+        print('Vehicle data: ${vehicle.toJson()}');
+        print('=================================');
+      }
+
+      final response = await _apiService.post(
+          '/vehicles',
+          vehicle.toJson(),
+          requireAuth: true
+      );
+
+      if (AppConfig.isDebugMode) {
+        print('✅ Vehicle created successfully: $response');
+      }
+
       return Vehicle.fromJson(response);
     } catch (e) {
-      print('Error creating vehicle: $e');
+      if (AppConfig.isDebugMode) {
+        print('❌ Error creating vehicle: $e');
+      }
       rethrow;
     }
   }
@@ -45,23 +62,52 @@ class VehicleService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      
-      if (token == null) {
-        throw Exception('No authentication token found. Please login again.');
+
+      if (token == null || token.trim().isEmpty) {
+        if (AppConfig.isDebugMode) {
+          print('❌ No token found in storage');
+        }
+        throw Exception('UNAUTHORIZED');
       }
 
-      print('Uploading ${imageFiles.length} images...');
+      // CRITICAL FIX: Trim token to remove any whitespace
+      final cleanToken = token.trim();
       
-      final formData = FormData();
+      if (AppConfig.isDebugMode) {
+        print('🔑 Token for upload: ${cleanToken.substring(0, 20)}...');
+        print('🔑 Token length: ${cleanToken.length}');
+      }
+
+      if (AppConfig.isDebugMode) {
+        print('=================================');
+        print('📸 Uploading ${imageFiles.length} images...');
+        print('Base URL: ${AppConfig.baseUrl}');
+        print('=================================');
+      }
+
+      // CRITICAL FIX: Validate files exist
       for (var file in imageFiles) {
-        // Check if file exists
         if (!await file.exists()) {
           throw Exception('File does not exist: ${file.path}');
         }
-        
+
+        // CRITICAL FIX: Check file size
+        final fileSize = await file.length();
+        if (fileSize > AppConfig.maxImageUploadSize) {
+          throw Exception('File too large: ${file.path} (${fileSize ~/ (1024 * 1024)}MB)');
+        }
+
+        if (AppConfig.isDebugMode) {
+          print('✅ File validated: ${file.path} (${fileSize ~/ 1024}KB)');
+        }
+      }
+
+      // CRITICAL FIX: Create FormData properly
+      final formData = FormData();
+      for (var file in imageFiles) {
         formData.files.add(
           MapEntry(
-            'images',
+            'images', // Must match backend parameter name
             await MultipartFile.fromFile(
               file.path,
               filename: file.path.split('/').last,
@@ -70,57 +116,96 @@ class VehicleService {
         );
       }
 
-      print('Uploading to: ${ApiService.baseUrl}/vehicles/upload');
+      final uploadUrl = '${AppConfig.baseUrl}/vehicles/upload';
+      if (AppConfig.isDebugMode) {
+        print('📤 Uploading to: $uploadUrl');
+      }
 
+      // CRITICAL FIX: Better Dio configuration
       final response = await _dio.post(
-        '${ApiService.baseUrl}/vehicles/upload',
+        uploadUrl,
         data: formData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer $token',
+            'Authorization': 'Bearer $cleanToken', // Use cleaned token
+            // Don't set Content-Type - Dio will set it automatically with boundary
           },
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: AppConfig.uploadTimeout,
+          sendTimeout: AppConfig.uploadTimeout,
+          validateStatus: (status) {
+            // CRITICAL FIX: Accept 200 and 201 as success
+            return status != null && (status == 200 || status == 201);
+          },
         ),
+        onSendProgress: (sent, total) {
+          if (AppConfig.isDebugMode) {
+            final progress = (sent / total * 100).toStringAsFixed(1);
+            print('📤 Upload progress: $progress% ($sent / $total bytes)');
+          }
+        },
       );
 
-      print('Upload response status: ${response.statusCode}');
-      print('Upload response data: ${response.data}');
+      if (AppConfig.isDebugMode) {
+        print('📥 Upload response status: ${response.statusCode}');
+        print('📥 Upload response data: ${response.data}');
+      }
 
+      // CRITICAL FIX: Handle response properly
       if (response.statusCode == 200 || response.statusCode == 201) {
-        if (response.data['images'] != null) {
-          final imageUrls = (response.data['images'] as List)
-              .map((url) => '${ApiService.baseUrl}$url')
+        final data = response.data;
+
+        // Handle both old and new response formats
+        if (data is Map && data['images'] != null) {
+          final imageUrls = (data['images'] as List)
+              .map((url) {
+            // CRITICAL FIX: Ensure full URL
+            final urlStr = url.toString();
+            if (urlStr.startsWith('http')) {
+              return urlStr;
+            } else {
+              return '${AppConfig.baseUrl}$urlStr';
+            }
+          })
               .toList();
-          
-          print('Uploaded image URLs: $imageUrls');
+
+          if (AppConfig.isDebugMode) {
+            print('✅ Uploaded image URLs: $imageUrls');
+          }
+
           return imageUrls;
         } else {
-          throw Exception('No images returned from server');
+          throw Exception('Invalid response format: No images field');
         }
       } else {
         throw Exception('Upload failed with status: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      if (AppConfig.isDebugMode) {
+        print('❌ Dio Exception: ${e.type}');
+        print('❌ Error message: ${e.message}');
+        print('❌ Response: ${e.response?.data}');
+      }
+
+      // CRITICAL FIX: Handle specific error types
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('Connection timeout. Check your network connection.');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Upload timeout. Images may be too large.');
+      } else if (e.response?.statusCode == 401) {
+        throw Exception('UNAUTHORIZED');
+      } else if (e.response != null) {
+        final statusCode = e.response?.statusCode;
+        final errorData = e.response?.data;
+        throw Exception('Upload failed: $statusCode - $errorData');
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
     } catch (e) {
-      print('Image upload error: $e');
-      if (e is DioException) {
-        if (e.type == DioExceptionType.connectionTimeout) {
-          throw Exception('Connection timeout. Check your network connection.');
-        } else if (e.type == DioExceptionType.receiveTimeout) {
-          throw Exception('Upload timeout. Images may be too large.');
-        } else if (e.response != null) {
-          final statusCode = e.response?.statusCode;
-          final errorData = e.response?.data;
-          if (statusCode == 401) {
-            throw Exception('Authentication failed. Please login again.');
-          }
-          throw Exception('Upload failed: $statusCode - $errorData');
-        } else {
-          throw Exception('Network error: ${e.message}');
-        }
+      if (AppConfig.isDebugMode) {
+        print('❌ Unexpected error during upload: $e');
       }
       rethrow;
     }
   }
 }
-

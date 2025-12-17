@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../models/vehicle.dart';
 import '../services/vehicle_service.dart';
 import '../services/auth_service.dart';
+import '../config/app_config.dart';
 
 class VehicleController extends GetxController {
   final VehicleService _vehicleService = VehicleService();
@@ -19,7 +20,7 @@ class VehicleController extends GetxController {
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Failed to load vehicles: ${e.toString()}');
+      _handleError('Failed to load vehicles', e);
     }
   }
 
@@ -31,7 +32,7 @@ class VehicleController extends GetxController {
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Failed to load your vehicles: ${e.toString()}');
+      _handleError('Failed to load your vehicles', e);
     }
   }
 
@@ -43,76 +44,77 @@ class VehicleController extends GetxController {
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Failed to load vehicle: ${e.toString()}');
+      _handleError('Failed to load vehicle', e);
     }
   }
 
   Future<bool> createVehicle(Vehicle vehicle) async {
     try {
-      // Check if user is still logged in
+      // CRITICAL FIX: Check authentication BEFORE attempting to create
       final authService = AuthService();
       final isLoggedIn = await authService.isLoggedIn();
-      
+
       if (!isLoggedIn) {
+        if (AppConfig.isDebugMode) {
+          print('❌ User not logged in');
+        }
         Get.snackbar('Error', 'Please login again');
         Get.offAllNamed('/login');
         return false;
       }
-      
-      // Check token validity
+
+      // CRITICAL FIX: Validate token is still valid
       final isValid = await authService.isTokenValid();
       if (!isValid) {
+        if (AppConfig.isDebugMode) {
+          print('❌ Token expired');
+        }
         Get.snackbar('Error', 'Session expired. Please login again');
         await authService.logout();
         Get.offAllNamed('/login');
         return false;
       }
-      
+
       isLoading.value = true;
-      print('Creating vehicle: ${vehicle.title}');
-      print('Vehicle JSON: ${vehicle.toJson()}');
-      
+
+      if (AppConfig.isDebugMode) {
+        print('=================================');
+        print('🚗 Creating vehicle: ${vehicle.title}');
+        print('Vehicle JSON: ${vehicle.toJson()}');
+        print('=================================');
+      }
+
       final createdVehicle = await _vehicleService.createVehicle(vehicle);
-      print('Vehicle created successfully with ID: ${createdVehicle.id}');
-      
+
+      if (AppConfig.isDebugMode) {
+        print('✅ Vehicle created successfully with ID: ${createdVehicle.id}');
+      }
+
       isLoading.value = false;
-      Get.snackbar('Success', 'Vehicle posted successfully! Waiting for admin approval.');
+      Get.snackbar(
+        'Success',
+        'Vehicle posted successfully! Waiting for admin approval.',
+        duration: const Duration(seconds: 3),
+      );
       return true;
     } catch (e) {
       isLoading.value = false;
-      print('Create vehicle error: $e');
-      print('Error type: ${e.runtimeType}');
-      print('Error toString: ${e.toString()}');
-      
-      String errorMessage = 'Failed to post vehicle';
-      
-      // Check if it's an auth error
-      if (e.toString().contains('401') || 
-          e.toString().contains('Unauthorized') ||
-          e.toString().contains('Authentication failed')) {
-        errorMessage = 'Session expired. Please login again.';
+
+      if (AppConfig.isDebugMode) {
+        print('❌ Create vehicle error: $e');
+        print('Error type: ${e.runtimeType}');
+      }
+
+      // CRITICAL FIX: Handle UNAUTHORIZED specifically
+      if (e.toString().contains('UNAUTHORIZED')) {
+        Get.snackbar('Error', 'Session expired. Please login again.');
         final authService = AuthService();
         await authService.logout();
         Get.offAllNamed('/login');
-      } else if (e.toString().contains('Network') || 
-                 e.toString().contains('Connection') ||
-                 e.toString().contains('timeout')) {
-        errorMessage = 'Network error. Please check your connection.';
-      } else if (e.toString().contains('Validation')) {
-        errorMessage = 'Invalid data. Please check all fields.';
-      } else {
-        // Extract meaningful error message
-        final errorStr = e.toString();
-        if (errorStr.contains('Exception: ')) {
-          errorMessage = errorStr.split('Exception: ').last;
-        } else if (errorStr.contains('Error: ')) {
-          errorMessage = errorStr.split('Error: ').last;
-        } else {
-          errorMessage = errorStr;
-        }
+        return false;
       }
-      
-      Get.snackbar('Error', errorMessage, duration: const Duration(seconds: 5));
+
+      _handleError('Failed to post vehicle', e);
       return false;
     }
   }
@@ -126,8 +128,56 @@ class VehicleController extends GetxController {
       Get.snackbar('Success', 'Vehicle marked as sold!');
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar('Error', 'Failed to mark as sold: ${e.toString()}');
+      _handleError('Failed to mark as sold', e);
     }
   }
-}
 
+  // CRITICAL FIX: Centralized error handling
+  void _handleError(String baseMessage, dynamic error) {
+    if (AppConfig.isDebugMode) {
+      print('❌ Error: $baseMessage - $error');
+    }
+
+    String errorMessage = baseMessage;
+    final errorStr = error.toString();
+
+    // Check for auth errors first
+    if (errorStr.contains('UNAUTHORIZED') ||
+        errorStr.contains('401') ||
+        errorStr.contains('Authentication failed')) {
+      errorMessage = 'Session expired. Please login again.';
+      final authService = AuthService();
+      authService.logout().then((_) {
+        Get.offAllNamed('/login');
+      });
+    }
+    // Network errors
+    else if (errorStr.contains('Network') ||
+        errorStr.contains('Connection') ||
+        errorStr.contains('timeout')) {
+      errorMessage = '$baseMessage: Network error. Please check your connection.';
+    }
+    // Validation errors
+    else if (errorStr.contains('Validation') ||
+        errorStr.contains('Invalid')) {
+      errorMessage = '$baseMessage: Invalid data. Please check all fields.';
+    }
+    // Extract meaningful error message
+    else {
+      if (errorStr.contains('Exception: ')) {
+        errorMessage = '$baseMessage: ${errorStr.split('Exception: ').last}';
+      } else if (errorStr.contains('Error: ')) {
+        errorMessage = '$baseMessage: ${errorStr.split('Error: ').last}';
+      } else {
+        errorMessage = '$baseMessage: $errorStr';
+      }
+    }
+
+    Get.snackbar(
+      'Error',
+      errorMessage,
+      duration: const Duration(seconds: 5),
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+}

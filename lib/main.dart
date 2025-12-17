@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'config/app_config.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/vehicle_controller.dart';
 import 'controllers/favorite_controller.dart';
@@ -10,6 +11,10 @@ import 'views/login/login_view.dart';
 import 'views/home/home_view.dart';
 
 void main() {
+  // CRITICAL FIX: Print configuration on startup
+  WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.printConfig();
+
   runApp(const MyApp());
 }
 
@@ -42,7 +47,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authController = Get.find<AuthController>();
-    
+
     return Obx(() {
       if (authController.currentUser.value != null) {
         return const HomeView();

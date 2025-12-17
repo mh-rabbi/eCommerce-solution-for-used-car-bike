@@ -75,7 +75,10 @@ class AuthService {
 
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
+    // CRITICAL FIX: Trim token before saving to prevent whitespace issues
+    final cleanToken = token.trim();
+    await prefs.setString('token', cleanToken);
+    print('Token saved successfully (length: ${cleanToken.length})');
   }
 
   Future<void> _saveUser(Map<String, dynamic> user) async {
@@ -87,16 +90,19 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     
-    if (token == null) {
+    if (token == null || token.trim().isEmpty) {
       print('No token found');
       return false;
     }
     
     try {
+      // CRITICAL FIX: Trim token before processing
+      final cleanToken = token.trim();
+      
       // Decode JWT to check expiration (simple check, not full validation)
-      final parts = token.split('.');
+      final parts = cleanToken.split('.');
       if (parts.length != 3) {
-        print('Invalid token format');
+        print('Invalid token format - expected 3 parts, got ${parts.length}');
         return false;
       }
       
@@ -139,6 +145,23 @@ class AuthService {
       print('Error checking token validity: $e');
       return false;
     }
+  }
+  
+  // CRITICAL FIX: Add method to check and refresh token if needed
+  Future<bool> checkAuthStatus() async {
+    final isLoggedIn = await this.isLoggedIn();
+    if (!isLoggedIn) {
+      return false;
+    }
+    
+    final isValid = await this.isTokenValid();
+    if (!isValid) {
+      // Token expired, clear it
+      await logout();
+      return false;
+    }
+    
+    return true;
   }
 }
 
