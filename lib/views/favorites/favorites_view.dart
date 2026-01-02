@@ -38,7 +38,7 @@ class FavoritesView extends StatelessWidget {
                       )
                     : const Icon(Icons.image),
                 title: Text(vehicle.title),
-                subtitle: Text('${vehicle.brand} • \$${vehicle.price.toStringAsFixed(2)}'),
+                subtitle: Text('${vehicle.brand} • BDT ${vehicle.price.toStringAsFixed(2)}'),
                 trailing: IconButton(
                   icon: const Icon(Icons.favorite, color: Colors.red),
                   onPressed: () {
@@ -46,7 +46,7 @@ class FavoritesView extends StatelessWidget {
                   },
                 ),
                 onTap: () {
-                  // Navigate to vehicle detail
+                  Get.toNamed('/vehicle-detail', arguments: vehicle);
                 },
               ),
             );

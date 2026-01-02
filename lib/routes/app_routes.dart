@@ -20,6 +20,7 @@ import '../views/profile/profile_view_v2.dart';
 import '../views/profile/profile_view_premium.dart';
 import '../views/sell_history/sell_history_view.dart';
 import '../views/payment/payment_view.dart';
+import '../views/vehicle_detail/vehicle_detail_view.dart';
 
 class AppRoutes {
   static final routes = [
@@ -43,6 +44,7 @@ class AppRoutes {
     GetPage(name: '/profile-old', page: () => const ProfileView()),
     GetPage(name: '/sell-history', page: () => const SellHistoryView()),
     GetPage(name: '/payment/:vehicleId', page: () => const PaymentView()),
+    GetPage(name: '/vehicle-detail', page: () => const VehicleDetailView()),
   ];
 }
 

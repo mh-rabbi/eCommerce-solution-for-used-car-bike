@@ -63,7 +63,7 @@ class PaymentView extends StatelessWidget {
                         children: [
                           const Text('Vehicle Price:'),
                           Text(
-                            '\$${vehicle.price.toStringAsFixed(2)}',
+                            'BDT ${vehicle.price.toStringAsFixed(2)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -74,7 +74,7 @@ class PaymentView extends StatelessWidget {
                         children: [
                           const Text('Commission (10%):'),
                           Text(
-                            '\$${amount.toStringAsFixed(2)}',
+                            'BDT ${amount.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,

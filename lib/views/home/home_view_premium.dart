@@ -133,7 +133,7 @@ class HomeViewPremium extends StatelessWidget {
         );
       }
 
-      if (vehicleController.vehicles.isEmpty) {
+      if (vehicleController.filteredVehicles.isEmpty) {
         return EmptyState(
           icon: Icons.directions_car_outlined,
           title: 'No Vehicles Yet',
@@ -144,20 +144,32 @@ class HomeViewPremium extends StatelessWidget {
       }
 
       return AnimationLimiter(
-        child: ListView.builder(
-          padding: const EdgeInsets.all(AppTheme.spacingMD),
-          itemCount: vehicleController.vehicles.length,
-          itemBuilder: (context, index) {
-            final vehicle = vehicleController.vehicles[index];
-            return AnimationConfiguration.staggeredList(
-              position: index,
-              duration: const Duration(milliseconds: 375),
-              child: SlideAnimation(
-                verticalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: _buildVehicleCard(vehicle),
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive grid: 2 columns on larger screens, 1 on smaller
+            final crossAxisCount = constraints.maxWidth > 600 ? 2 : 2;
+            return GridView.builder(
+              padding: const EdgeInsets.all(AppTheme.spacingMD),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: AppTheme.spacingMD,
+                mainAxisSpacing: AppTheme.spacingMD,
+                childAspectRatio: 0.9,
               ),
+              itemCount: vehicleController.filteredVehicles.length,
+              itemBuilder: (context, index) {
+                final vehicle = vehicleController.filteredVehicles[index];
+                return AnimationConfiguration.staggeredGrid(
+                  position: index,
+                  duration: const Duration(milliseconds: 375),
+                  columnCount: crossAxisCount,
+                  child: ScaleAnimation(
+                    child: FadeInAnimation(
+                      child: _buildVehicleCard(vehicle),
+                    ),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -172,124 +184,119 @@ class HomeViewPremium extends StatelessWidget {
     return AnimatedCard(
       index: 0,
       onTap: () {
-        // Navigate to detail
+        Get.toNamed('/vehicle-detail', arguments: vehicle);
       },
+      margin: EdgeInsets.zero,
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppTheme.radiusLarge),
-              topRight: Radius.circular(AppTheme.radiusLarge),
-            ),
-            child: Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 220,
-                  color: AppTheme.surfaceVariant,
-                  child: vehicle.images.isNotEmpty
-                      ? Image.network(
-                          vehicle.images.first,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.image_not_supported),
-                        )
-                      : const Icon(Icons.directions_car, size: 60),
-                ),
-                // Favorite Button
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                      boxShadow: AppTheme.shadow1,
-                    ),
-                    child: Obx(() => IconButton(
-                      icon: Icon(
-                        favoriteController.favoriteStatus[vehicle.id] == true
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        favoriteController.toggleFavorite(vehicle.id);
-                      },
-                      color: Colors.red,
-                    )),
+          // Image - Takes up flexible space
+          Expanded(
+            flex: 3,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppTheme.radiusLarge),
+                topRight: Radius.circular(AppTheme.radiusLarge),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: AppTheme.surfaceVariant,
+                    child: vehicle.images.isNotEmpty
+                        ? Image.network(
+                            vehicle.images.first,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.image_not_supported),
+                          )
+                        : const Icon(Icons.directions_car, size: 40),
                   ),
-                ),
-              ],
+                  // Favorite Button
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: AppTheme.shadow1,
+                      ),
+                      child: Obx(() => IconButton(
+                        icon: Icon(
+                          favoriteController.favoriteStatus[vehicle.id] == true
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          favoriteController.toggleFavorite(vehicle.id);
+                        },
+                        color: Colors.red,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMD),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  vehicle.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+          // Content - Takes up flexible space
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spacingSM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  // Title - Allow flexible height
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      vehicle.title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.local_offer_outlined,
-                        size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 4),
-                    Text(
+                  const SizedBox(height: 2),
+                  // Brand and Type - Fixed height
+                  SizedBox(
+                    height: 16,
+                    child: Text(
                       '${vehicle.brand} • ${vehicle.type}',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 11,
                         color: Colors.grey[600],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '\$${vehicle.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.success,
-                      ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Price - Fixed at bottom
+                  Text(
+                    'BDT ${vehicle.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.success,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        vehicle.status.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -315,8 +322,28 @@ class HomeViewPremium extends StatelessWidget {
           _buildQuickAction(Icons.add_circle, 'Sell', () {
             Get.toNamed('/post-vehicle');
           }),
-          _buildQuickAction(Icons.directions_car, 'Cars', () {}),
-          _buildQuickAction(Icons.two_wheeler, 'Bikes', () {}),
+          Obx(() {
+            final vehicleController = Get.find<VehicleController>();
+            return _buildQuickAction(
+              Icons.directions_car,
+              'Cars',
+              () => vehicleController.filterByType('car'),
+              isSelected: vehicleController.currentFilter.value == 'car',
+            );
+          }),
+          Obx(() {
+            final vehicleController = Get.find<VehicleController>();
+            return _buildQuickAction(
+              Icons.two_wheeler,
+              'Bikes',
+              () => vehicleController.filterByType('bike'),
+              isSelected: vehicleController.currentFilter.value == 'bike',
+            );
+          }),
+          _buildQuickAction(Icons.list, 'All', () {
+            final vehicleController = Get.find<VehicleController>();
+            vehicleController.showAllVehicles();
+          }),
           _buildQuickAction(Icons.favorite, 'Favorites', () {
             Get.toNamed('/favorites');
           }),
@@ -328,7 +355,7 @@ class HomeViewPremium extends StatelessWidget {
         .slideY(begin: 0.3, end: 0, duration: 400.ms);
   }
 
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap) {
+  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap, {bool isSelected = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -337,18 +364,25 @@ class HomeViewPremium extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: isSelected
+                  ? AppTheme.primary
+                  : AppTheme.primary.withOpacity(0.1),
               shape: BoxShape.circle,
+              border: isSelected ? Border.all(color: AppTheme.primary, width: 2) : null,
             ),
-            child: Icon(icon, color: AppTheme.primary, size: 24),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.white : AppTheme.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: isSelected ? AppTheme.primary : Colors.black87,
             ),
           ),
         ],

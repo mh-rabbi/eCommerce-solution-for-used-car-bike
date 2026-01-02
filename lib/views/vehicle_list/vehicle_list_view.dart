@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../controllers/vehicle_controller.dart';
 import '../../controllers/favorite_controller.dart';
+import '../../controllers/vehicle_controller.dart';
 import '../../models/vehicle.dart';
 
 class VehicleListView extends StatelessWidget {
@@ -98,7 +98,7 @@ class VehicleCard extends StatelessWidget {
                   Text('${vehicle.brand} • ${vehicle.type}'),
                   const SizedBox(height: 8),
                   Text(
-                    '\$${vehicle.price.toStringAsFixed(2)}',
+                    'BDT ${vehicle.price.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

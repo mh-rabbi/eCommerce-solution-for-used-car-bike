@@ -9,14 +9,17 @@ class VehicleController extends GetxController {
 
   final RxList<Vehicle> vehicles = <Vehicle>[].obs;
   final RxList<Vehicle> myVehicles = <Vehicle>[].obs;
+  final RxList<Vehicle> filteredVehicles = <Vehicle>[].obs;
   final RxBool isLoading = false.obs;
   final Rx<Vehicle?> selectedVehicle = Rx<Vehicle?>(null);
+  final RxString currentFilter = 'all'.obs; // 'all', 'car', 'bike'
 
   Future<void> loadVehicles({String? status}) async {
     try {
       isLoading.value = true;
       final loadedVehicles = await _vehicleService.getVehicles(status: status);
       vehicles.value = loadedVehicles;
+      _applyFilter(); // Apply current filter to new data
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
@@ -26,11 +29,15 @@ class VehicleController extends GetxController {
 
   Future<void> loadMyVehicles() async {
     try {
+      print('🔄 VehicleController: Loading my vehicles...');
       isLoading.value = true;
       final loadedVehicles = await _vehicleService.getMyVehicles();
+      print('✅ VehicleController: Loaded ${loadedVehicles.length} vehicles');
       myVehicles.value = loadedVehicles;
       isLoading.value = false;
+      print('✅ VehicleController: My vehicles updated in observable');
     } catch (e) {
+      print('❌ VehicleController: Error loading my vehicles: $e');
       isLoading.value = false;
       _handleError('Failed to load your vehicles', e);
     }
@@ -129,6 +136,34 @@ class VehicleController extends GetxController {
     } catch (e) {
       isLoading.value = false;
       _handleError('Failed to mark as sold', e);
+    }
+  }
+
+  // Filter methods
+  void filterByType(String type) {
+    currentFilter.value = type;
+    _applyFilter();
+  }
+
+  void showAllVehicles() {
+    currentFilter.value = 'all';
+    _applyFilter();
+  }
+
+  void _applyFilter() {
+    switch (currentFilter.value) {
+      case 'car':
+        filteredVehicles.value = vehicles.where((vehicle) =>
+            vehicle.type.toLowerCase() == 'car').toList();
+        break;
+      case 'bike':
+        filteredVehicles.value = vehicles.where((vehicle) =>
+            vehicle.type.toLowerCase() == 'bike' ||
+            vehicle.type.toLowerCase() == 'motorcycle').toList();
+        break;
+      default:
+        filteredVehicles.value = vehicles.toList();
+        break;
     }
   }
 

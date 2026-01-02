@@ -21,8 +21,12 @@ class VehicleService {
   }
 
   Future<List<Vehicle>> getMyVehicles() async {
+    print('🚗 VehicleService: Fetching my vehicles from API...');
     final response = await _apiService.getList('/vehicles/my-vehicles');
-    return response.map((json) => Vehicle.fromJson(json)).toList();
+    print('🚗 VehicleService: API returned ${response.length} vehicles');
+    final vehicles = response.map((json) => Vehicle.fromJson(json)).toList();
+    print('🚗 VehicleService: Parsed ${vehicles.length} vehicles successfully');
+    return vehicles;
   }
 
   Future<Vehicle> createVehicle(Vehicle vehicle) async {

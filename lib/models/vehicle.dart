@@ -26,18 +26,40 @@ class Vehicle {
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely parse price from string or number
+    double parsePrice(dynamic priceValue) {
+      if (priceValue == null) return 0.0;
+      
+      if (priceValue is double) {
+        return priceValue;
+      } else if (priceValue is int) {
+        return priceValue.toDouble();
+      } else if (priceValue is String) {
+        // Remove any currency symbols or commas
+        final cleanPrice = priceValue.replaceAll(RegExp(r'[^\d.]'), '');
+        return double.tryParse(cleanPrice) ?? 0.0;
+      } else {
+        // Try to convert to string first, then parse
+        return double.tryParse(priceValue.toString()) ?? 0.0;
+      }
+    }
+
     return Vehicle(
-      id: json['id'],
-      sellerId: json['sellerId'],
-      title: json['title'],
-      description: json['description'],
-      brand: json['brand'],
-      type: json['type'],
-      price: json['price']?.toDouble() ?? 0.0,
-      images: json['images'] != null ? List<String>.from(json['images']) : [],
-      status: json['status'],
-      createdAt: json['createdAt'],
-      seller: json['seller'],
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      sellerId: json['sellerId'] is int ? json['sellerId'] : int.tryParse(json['sellerId'].toString()) ?? 0,
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      brand: json['brand']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      price: parsePrice(json['price']),
+      images: json['images'] != null 
+          ? (json['images'] is List 
+              ? List<String>.from(json['images'].map((img) => img.toString()))
+              : [])
+          : [],
+      status: json['status']?.toString() ?? 'pending',
+      createdAt: json['createdAt']?.toString(),
+      seller: json['seller'] is Map ? Map<String, dynamic>.from(json['seller']) : null,
     );
   }
 
