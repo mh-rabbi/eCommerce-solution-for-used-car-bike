@@ -103,8 +103,8 @@ class _PostVehicleViewState extends State<PostVehicleView> {
         print('Creating vehicle: ${vehicle.title}');
         print('Vehicle data: ${vehicle.toJson()}');
         
-        final success = await _vehicleController.createVehicle(vehicle);
-        if (success) {
+        final createdVehicle = await _vehicleController.createVehicle(vehicle);
+        if (createdVehicle != null) {
           // Clear form
           _titleController.clear();
           _descriptionController.clear();
@@ -113,7 +113,14 @@ class _PostVehicleViewState extends State<PostVehicleView> {
           setState(() {
             _selectedImages = [];
           });
-          Get.back();
+          
+          // Navigate to checkout page with vehicle details
+          Get.offNamed('/checkout', arguments: {
+            'vehicleId': createdVehicle.id,
+            'vehicleType': createdVehicle.type,
+            'vehiclePrice': createdVehicle.price,
+            'vehicleTitle': createdVehicle.title,
+          });
         }
       } catch (e) {
         print('Error in _submit: $e');

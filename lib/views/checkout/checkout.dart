@@ -45,7 +45,7 @@ class _CheckoutState extends State<Checkout> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'For the advertisement of your vehicle you have to pay a platform fee Sir/Madam. Thank You.',
+                  'For the advertisement of your vehicle you have to pay a platform fee Sir/Madam.\nFor Car: 8% of your listed Price are charged.\nFor Bike: 5% of your listed Price are charged.\nThank You.',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                   ),

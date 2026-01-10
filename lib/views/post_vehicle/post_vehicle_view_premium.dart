@@ -95,8 +95,9 @@ class _PostVehicleViewPremiumState extends State<PostVehicleViewPremium> {
           status: 'pending',
         );
 
-        final success = await _vehicleController.createVehicle(vehicle);
-        if (success) {
+        final createdVehicle = await _vehicleController.createVehicle(vehicle);
+        if (createdVehicle != null) {
+          // Clear form
           _titleController.clear();
           _descriptionController.clear();
           _brandController.clear();
@@ -104,7 +105,14 @@ class _PostVehicleViewPremiumState extends State<PostVehicleViewPremium> {
           setState(() {
             _selectedImages = [];
           });
-          Get.back();
+          
+          // Navigate to checkout page with vehicle details
+          Get.offNamed('/checkout', arguments: {
+            'vehicleId': createdVehicle.id,
+            'vehicleType': createdVehicle.type,
+            'vehiclePrice': createdVehicle.price,
+            'vehicleTitle': createdVehicle.title,
+          });
         }
       } catch (e) {
         Get.snackbar('Error', 'Failed to post vehicle: ${e.toString()}');

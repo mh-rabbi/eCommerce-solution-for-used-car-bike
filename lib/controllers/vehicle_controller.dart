@@ -55,7 +55,7 @@ class VehicleController extends GetxController {
     }
   }
 
-  Future<bool> createVehicle(Vehicle vehicle) async {
+  Future<Vehicle?> createVehicle(Vehicle vehicle) async {
     try {
       // CRITICAL FIX: Check authentication BEFORE attempting to create
       final authService = AuthService();
@@ -67,7 +67,7 @@ class VehicleController extends GetxController {
         }
         Get.snackbar('Error', 'Please login again');
         Get.offAllNamed('/login');
-        return false;
+        return null;
       }
 
       // CRITICAL FIX: Validate token is still valid
@@ -79,7 +79,7 @@ class VehicleController extends GetxController {
         Get.snackbar('Error', 'Session expired. Please login again');
         await authService.logout();
         Get.offAllNamed('/login');
-        return false;
+        return null;
       }
 
       isLoading.value = true;
@@ -98,12 +98,9 @@ class VehicleController extends GetxController {
       }
 
       isLoading.value = false;
-      Get.snackbar(
-        'Success',
-        'Vehicle posted successfully! Waiting for admin approval.',
-        duration: const Duration(seconds: 3),
-      );
-      return true;
+      
+      // Return the created vehicle - caller will handle navigation to checkout
+      return createdVehicle;
     } catch (e) {
       isLoading.value = false;
 
@@ -118,11 +115,11 @@ class VehicleController extends GetxController {
         final authService = AuthService();
         await authService.logout();
         Get.offAllNamed('/login');
-        return false;
+        return null;
       }
 
       _handleError('Failed to post vehicle', e);
-      return false;
+      return null;
     }
   }
 

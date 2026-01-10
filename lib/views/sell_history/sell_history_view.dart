@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../controllers/vehicle_controller.dart';
-import '../../controllers/payment_controller.dart';
+import 'package:vehicle_marketplace/controllers/payment_controller.dart';
+import 'package:vehicle_marketplace/controllers/vehicle_controller.dart';
+
 
 class SellHistoryView extends StatefulWidget {
   const SellHistoryView({super.key});
@@ -127,15 +128,15 @@ class _SellHistoryViewState extends State<SellHistoryView> {
                               padding: const EdgeInsets.only(top: 8),
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  try {
-                                    await vehicleController.markAsSold(vehicle.id);
-                                    final payment = await paymentController.createPayment(vehicle.id);
-                                    if (payment != null) {
-                                      Get.toNamed('/payment/${vehicle.id}');
-                                    }
-                                  } catch (e) {
-                                    Get.snackbar('Error', 'Failed to process payment: $e');
-                                  }
+                                  // try {
+                                  //   await vehicleController.markAsSold(vehicle.id);
+                                  //   final payment = await paymentController.createPayment(vehicle.id);
+                                  //   if (payment != null) {
+                                  //     Get.toNamed('/payment/${vehicle.id}');
+                                  //   }
+                                  // } catch (e) {
+                                  //   Get.snackbar('Error', 'Failed to process payment: $e');
+                                  // }
                                 },
                                 child: const Text('Mark as Sold'),
                               ),
