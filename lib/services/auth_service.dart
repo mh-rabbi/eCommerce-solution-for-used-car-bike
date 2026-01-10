@@ -163,5 +163,12 @@ class AuthService {
     
     return true;
   }
+
+  /// Update local user data in storage
+  Future<void> updateLocalUser(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(user.toJson()));
+    print('Local user data updated');
+  }
 }
 

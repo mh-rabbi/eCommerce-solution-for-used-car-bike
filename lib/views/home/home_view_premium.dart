@@ -10,6 +10,7 @@ import '../../core/widgets/shimmer_loading.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../models/vehicle.dart';
 import '../../controllers/favorite_controller.dart';
+import '../../services/user_service.dart';
 import '../vehicle_list/vehicle_list_view.dart';
 import '../post_vehicle/post_vehicle_view.dart';
 import '../favorites/favorites_view.dart';
@@ -391,6 +392,8 @@ class HomeViewPremium extends StatelessWidget {
   }
 
   Widget _buildDrawer(BuildContext context, AuthController authController) {
+    final userService = UserService();
+    
     return Drawer(
       child: Container(
         decoration: const BoxDecoration(
@@ -409,11 +412,60 @@ class HomeViewPremium extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 50, color: AppTheme.primary),
-                  ),
+                  // Profile Image - Circle Avatar
+                  Obx(() {
+                    final user = authController.currentUser.value;
+                    final profileImageUrl = user?.profileImage != null
+                        ? userService.getProfileImageUrl(user!.profileImage)
+                        : '';
+                    
+                    return GestureDetector(
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/profile');
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: AppTheme.shadow2,
+                        ),
+                        child: ClipOval(
+                          child: profileImageUrl.isNotEmpty
+                              ? Image.network(
+                                  profileImageUrl,
+                                  fit: BoxFit.cover,
+                                  width: 80,
+                                  height: 80,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: AppTheme.primary,
+                                  ),
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        color: AppTheme.primary,
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppTheme.primary,
+                                ),
+                        ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 16),
                   Obx(() => Text(
                         authController.currentUser.value?.name ?? 'User',

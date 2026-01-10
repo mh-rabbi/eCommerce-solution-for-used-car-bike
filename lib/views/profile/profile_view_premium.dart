@@ -4,10 +4,28 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/animated_card.dart';
+import '../../services/user_service.dart';
 import '../sell_history/sell_history_view.dart';
+import 'edit_profile_view.dart';
 
-class ProfileViewPremium extends StatelessWidget {
+class ProfileViewPremium extends StatefulWidget {
   const ProfileViewPremium({super.key});
+
+  @override
+  State<ProfileViewPremium> createState() => _ProfileViewPremiumState();
+}
+
+class _ProfileViewPremiumState extends State<ProfileViewPremium> {
+  final UserService _userService = UserService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user profile when entering the screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<AuthController>().refreshUserProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +38,15 @@ class ProfileViewPremium extends StatelessWidget {
           return const Center(child: Text('Not logged in'));
         }
 
+        final profileImageUrl = user.profileImage != null
+            ? _userService.getProfileImageUrl(user.profileImage)
+            : '';
+
         return CustomScrollView(
           slivers: [
             // Collapsible Header
             SliverAppBar(
-              expandedHeight: 280,
+              expandedHeight: 320,
               floating: false,
               pinned: true,
               backgroundColor: AppTheme.primary,
@@ -37,7 +59,7 @@ class ProfileViewPremium extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Profile Image
+                        // Profile Image - Circle Avatar
                         Container(
                           width: 120,
                           height: 120,
@@ -47,10 +69,42 @@ class ProfileViewPremium extends StatelessWidget {
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: AppTheme.shadow3,
                           ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            size: 70,
-                            color: AppTheme.primary,
+                          child: ClipOval(
+                            child: profileImageUrl.isNotEmpty
+                                ? Image.network(
+                                    profileImageUrl,
+                                    fit: BoxFit.cover,
+                                    width: 120,
+                                    height: 120,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(
+                                      Icons.person_rounded,
+                                      size: 70,
+                                      color: AppTheme.primary,
+                                    ),
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                          color: AppTheme.primary,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : const Icon(
+                                    Icons.person_rounded,
+                                    size: 70,
+                                    color: AppTheme.primary,
+                                  ),
                           ),
                         )
                             .animate()
@@ -77,6 +131,19 @@ class ProfileViewPremium extends StatelessWidget {
                         )
                             .animate()
                             .fadeIn(delay: 300.ms, duration: 600.ms),
+                        if (user.phone != null && user.phone!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              user.phone!,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14,
+                              ),
+                            ),
+                          )
+                              .animate()
+                              .fadeIn(delay: 350.ms, duration: 600.ms),
                       ],
                     ),
                   ),
@@ -133,21 +200,65 @@ class ProfileViewPremium extends StatelessWidget {
                     AnimatedCard(
                       index: 3,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildDetailRow('Name', user.name, null),
+                          const Text(
+                            'Personal Information',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.spacingMD),
+                          _buildDetailRow('Name', user.name, Icons.person_outline),
                           const Divider(),
-                          _buildDetailRow('Email', user.email, null),
+                          _buildDetailRow('Email', user.email, Icons.email_outlined),
+                          if (user.phone != null && user.phone!.isNotEmpty) ...[
+                            const Divider(),
+                            _buildDetailRow('Phone', user.phone!, Icons.phone_outlined),
+                          ],
                           const Divider(),
-                          _buildDetailRow('Role', user.role.toUpperCase(), null),
+                          _buildDetailRow('Role', user.role.toUpperCase(), Icons.badge_outlined),
                         ],
                       ),
                     ),
                     
                     const SizedBox(height: AppTheme.spacingMD),
                     
+                    // Address Details
+                    if (user.address != null || user.streetNo != null || user.postalCode != null)
+                      AnimatedCard(
+                        index: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Address Information',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.spacingMD),
+                            if (user.address != null && user.address!.isNotEmpty)
+                              _buildDetailRow('Address', user.address!, Icons.location_on_outlined),
+                            if (user.streetNo != null && user.streetNo!.isNotEmpty) ...[
+                              const Divider(),
+                              _buildDetailRow('Street No.', user.streetNo!, Icons.home_outlined),
+                            ],
+                            if (user.postalCode != null && user.postalCode!.isNotEmpty) ...[
+                              const Divider(),
+                              _buildDetailRow('Postal Code', user.postalCode!, Icons.markunread_mailbox_outlined),
+                            ],
+                          ],
+                        ),
+                      ),
+                    
+                    const SizedBox(height: AppTheme.spacingMD),
+                    
                     // Action Buttons
                     AnimatedCard(
-                      index: 4,
+                      index: 5,
                       padding: EdgeInsets.zero,
                       child: Column(
                         children: [
@@ -155,7 +266,7 @@ class ProfileViewPremium extends StatelessWidget {
                             leading: const Icon(Icons.edit_rounded, color: AppTheme.primary),
                             title: const Text('Edit Profile'),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () {},
+                            onTap: () => Get.to(() => const EditProfileView()),
                           ),
                           const Divider(height: 1),
                           ListTile(
@@ -246,28 +357,34 @@ class ProfileViewPremium extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, VoidCallback? onTap) {
+  Widget _buildDetailRow(String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
-          ),
-          GestureDetector(
-            onTap: onTap,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: onTap != null ? AppTheme.primary : Colors.black87,
-              ),
+          Icon(icon, color: AppTheme.primary, size: 20),
+          const SizedBox(width: AppTheme.spacingMD),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
