@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:vehicle_marketplace/views/checkout/checkout.dart';
 import '../controllers/auth_controller.dart';
 import '../views/login/login_view.dart';
 import '../views/login/login_view_v2.dart';
@@ -47,6 +48,7 @@ class AppRoutes {
     GetPage(name: '/sell-history', page: () => const SellHistoryView()),
     GetPage(name: '/payment/:vehicleId', page: () => const PaymentView()),
     GetPage(name: '/vehicle-detail', page: () => const VehicleDetailView()),
+    GetPage(name: '/checkout', page: () => const Checkout()),
   ];
 }
 

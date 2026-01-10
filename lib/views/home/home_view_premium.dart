@@ -520,7 +520,7 @@ class HomeViewPremium extends StatelessWidget {
                       'Notifications',
                       () {
                         Get.back();
-                        Get.toNamed('/favorites');
+                        Get.toNamed('/checkout');
                       },
                     ),
                     _buildDrawerItem(
