@@ -169,15 +169,15 @@ class _ProfileViewPremiumState extends State<ProfileViewPremium> {
                           ),
                         ),
                         const SizedBox(width: AppTheme.spacingMD),
-                        Expanded(
-                          child: _buildActionCard(
-                            icon: Icons.notifications_rounded,
-                            label: 'Notifications',
-                            color: AppTheme.accent,
-                            onTap: () {},
-                            index: 1,
-                          ),
-                        ),
+                        // Expanded(
+                        //   child: _buildActionCard(
+                        //     icon: Icons.notifications_rounded,
+                        //     label: 'Notifications',
+                        //     color: AppTheme.accent,
+                        //     onTap: () {},
+                        //     index: 1,
+                        //   ),
+                        // ),
                         const SizedBox(width: AppTheme.spacingMD),
                         Expanded(
                           child: _buildActionCard(

@@ -516,8 +516,8 @@ class HomeViewPremium extends StatelessWidget {
                       },
                     ),
                     _buildDrawerItem(
-                      Icons.favorite_rounded,
-                      'Favorites',
+                      Icons.notifications_rounded,
+                      'Notifications',
                       () {
                         Get.back();
                         Get.toNamed('/favorites');
