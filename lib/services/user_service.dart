@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/user.dart';
@@ -104,28 +105,55 @@ class UserService {
         throw Exception('Not authenticated');
       }
 
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/users/profile/upload-image'),
-      );
+      print('📤 Uploading profile image...');
+      print('📄 File path: ${imageFile.path}');
+      print('📄 File exists: ${imageFile.existsSync()}');
+      print('📄 File size: ${imageFile.lengthSync()} bytes');
 
+      final uri = Uri.parse('$baseUrl/users/profile/upload-image');
+      print('🌐 Upload URL: $uri');
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add authorization header
       request.headers['Authorization'] = 'Bearer $token';
+      
+      // Get file extension and determine content type
+      final extension = imageFile.path.split('.').last.toLowerCase();
+      String contentType = 'image/jpeg';
+      if (extension == 'png') {
+        contentType = 'image/png';
+      } else if (extension == 'gif') {
+        contentType = 'image/gif';
+      } else if (extension == 'webp') {
+        contentType = 'image/webp';
+      }
+      
+      print('📄 File extension: $extension, Content-Type: $contentType');
 
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'image',
-          imageFile.path,
-        ),
+      // Add the file with proper content type
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image',
+        imageFile.path,
+        contentType: MediaType.parse(contentType),
       );
+      request.files.add(multipartFile);
+      
+      print('📤 Sending request...');
 
       final streamedResponse = await request.send().timeout(
         const Duration(seconds: 60),
       );
 
+      print('📥 Response status: ${streamedResponse.statusCode}');
+
       final response = await http.Response.fromStream(streamedResponse);
+      
+      print('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
+        print('✅ Upload successful!');
         return User.fromJson(data);
       } else if (response.statusCode == 401) {
         throw Exception('UNAUTHORIZED');
@@ -134,14 +162,15 @@ class UserService {
         try {
           final errorJson = jsonDecode(errorBody);
           throw Exception(errorJson['message'] ?? 'Failed to upload image');
-        } catch (_) {
-          throw Exception('Failed to upload image: ${response.statusCode}');
+        } catch (e) {
+          if (e.toString().contains('Exception:')) {
+            rethrow;
+          }
+          throw Exception('Failed to upload image: ${response.statusCode} - $errorBody');
         }
       }
     } catch (e) {
-      if (AppConfig.isDebugMode) {
-        print('❌ Error uploading profile image: $e');
-      }
+      print('❌ Error uploading profile image: $e');
       rethrow;
     }
   }
