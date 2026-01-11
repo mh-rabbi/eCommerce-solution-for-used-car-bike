@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:vehicle_marketplace/views/home/home_view_premium.dart';
+import 'package:vehicle_marketplace/views/login/login_view_premium.dart';
 import 'config/app_config.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/vehicle_controller.dart';
@@ -8,8 +10,6 @@ import 'controllers/payment_controller.dart';
 import 'services/socket_service.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_routes.dart';
-import 'views/login/login_view.dart';
-import 'views/home/home_view.dart';
 
 void main() async {
   // CRITICAL FIX: Print configuration on startup
@@ -55,9 +55,9 @@ class AuthWrapper extends StatelessWidget {
 
     return Obx(() {
       if (authController.currentUser.value != null) {
-        return const HomeView();
+        return const HomeViewPremium();
       }
-      return const LoginView();
+      return const LoginViewPremium();
     });
   }
 }

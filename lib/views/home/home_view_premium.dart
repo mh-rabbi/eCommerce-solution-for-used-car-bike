@@ -12,9 +12,7 @@ import '../../models/vehicle.dart';
 import '../../controllers/favorite_controller.dart';
 import '../../services/user_service.dart';
 import '../vehicle_list/vehicle_list_view.dart';
-import '../post_vehicle/post_vehicle_view.dart';
 import '../favorites/favorites_view.dart';
-import '../profile/profile_view_v2.dart';
 import '../sell_history/sell_history_view.dart';
 
 class HomeViewPremium extends StatelessWidget {

@@ -145,8 +145,8 @@ class _CheckoutViewState extends State<CheckoutView> {
           currency: SSLCurrencyType.BDT,
           product_category: "Vehicle Advertisement",
           sdkType: SSLCSdkType.TESTBOX, // Use TESTBOX for sandbox testing
-          store_id: "gaari6962775b68663", // Replace with your store ID
-          store_passwd: "gaari6962775b68663@ssl", // Replace with your store password
+          store_id: "your store id", // Replace with your store ID
+          store_passwd: "your store pass @ssl", // Replace with your store password
           total_amount: platformFee!.platformFee,
           tran_id: initializedPayment!.transactionId ?? "TXN${DateTime.now().millisecondsSinceEpoch}",
         ),
