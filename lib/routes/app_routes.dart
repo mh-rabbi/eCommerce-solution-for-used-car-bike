@@ -12,6 +12,7 @@ import '../views/favorites/favorites_view.dart';
 import '../views/profile/profile_view_premium.dart';
 import '../views/profile/edit_profile_view.dart';
 import '../views/sell_history/sell_history_view.dart';
+import '../views/my_posts/my_posts_view.dart';
 import '../views/vehicle_detail/vehicle_detail_view.dart';
 
 class AppRoutes {
@@ -26,7 +27,8 @@ class AppRoutes {
     GetPage(name: '/favorites', page: () => const FavoritesView()),
     GetPage(name: '/profile', page: () => const ProfileViewPremium()),
     GetPage(name: '/edit-profile', page: () => const EditProfileView()),
-    // GetPage(name: '/sell-history', page: () => const SellHistoryView()),
+    GetPage(name: '/sell-history', page: () => const SellHistoryView()),
+    GetPage(name: '/my-posts', page: () => const MyPostsView()),
     GetPage(name: '/vehicle-detail', page: () => const VehicleDetailView()),
     GetPage(name: '/checkout', page: () => const CheckoutView()), // New checkout with SSLCommerz
   ];

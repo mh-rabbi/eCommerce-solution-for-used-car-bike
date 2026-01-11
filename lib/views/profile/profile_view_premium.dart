@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/animated_card.dart';
 import '../../services/user_service.dart';
 import '../sell_history/sell_history_view.dart';
+import '../my_posts/my_posts_view.dart';
 import 'edit_profile_view.dart';
 
 class ProfileViewPremium extends StatefulWidget {
@@ -161,31 +162,21 @@ class _ProfileViewPremiumState extends State<ProfileViewPremium> {
                       children: [
                         Expanded(
                           child: _buildActionCard(
-                            icon: Icons.history_rounded,
-                            label: 'Sell History',
+                            icon: Icons.inventory_2_rounded,
+                            label: 'My Posts',
                             color: AppTheme.primary,
-                            onTap: () => Get.to(() => const SellHistoryView()),
+                            onTap: () => Get.to(() => const MyPostsView()),
                             index: 0,
                           ),
                         ),
                         const SizedBox(width: AppTheme.spacingMD),
-                        // Expanded(
-                        //   child: _buildActionCard(
-                        //     icon: Icons.notifications_rounded,
-                        //     label: 'Notifications',
-                        //     color: AppTheme.accent,
-                        //     onTap: () {},
-                        //     index: 1,
-                        //   ),
-                        // ),
-                        const SizedBox(width: AppTheme.spacingMD),
                         Expanded(
                           child: _buildActionCard(
-                            icon: Icons.add_photo_alternate_rounded,
-                            label: 'My Posts',
+                            icon: Icons.sell_rounded,
+                            label: 'Sell History',
                             color: AppTheme.success,
                             onTap: () => Get.to(() => const SellHistoryView()),
-                            index: 2,
+                            index: 1,
                           ),
                         ),
                       ],
@@ -270,8 +261,17 @@ class _ProfileViewPremiumState extends State<ProfileViewPremium> {
                           ),
                           const Divider(height: 1),
                           ListTile(
-                            leading: const Icon(Icons.history_rounded, color: AppTheme.primary),
+                            leading: const Icon(Icons.inventory_2_rounded, color: AppTheme.primary),
+                            title: const Text('My Posts'),
+                            subtitle: const Text('Manage all your vehicle listings'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Get.to(() => const MyPostsView()),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.sell_rounded, color: AppTheme.success),
                             title: const Text('Sell History'),
+                            subtitle: const Text('View your sold vehicles'),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => Get.to(() => const SellHistoryView()),
                           ),
