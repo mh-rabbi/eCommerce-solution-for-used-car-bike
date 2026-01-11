@@ -5,15 +5,20 @@ import 'controllers/auth_controller.dart';
 import 'controllers/vehicle_controller.dart';
 import 'controllers/favorite_controller.dart';
 import 'controllers/payment_controller.dart';
+import 'services/socket_service.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_routes.dart';
 import 'views/login/login_view.dart';
 import 'views/home/home_view.dart';
 
-void main() {
+void main() async {
   // CRITICAL FIX: Print configuration on startup
   WidgetsFlutterBinding.ensureInitialized();
   AppConfig.printConfig();
+
+  // Initialize socket service for real-time updates
+  await Get.putAsync(() => SocketService().init());
+  print('🔌 Socket service initialized for real-time updates');
 
   runApp(const MyApp());
 }

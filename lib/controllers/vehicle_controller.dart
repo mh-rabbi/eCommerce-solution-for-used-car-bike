@@ -2,10 +2,12 @@ import 'package:get/get.dart';
 import '../models/vehicle.dart';
 import '../services/vehicle_service.dart';
 import '../services/auth_service.dart';
+import '../services/socket_service.dart';
 import '../config/app_config.dart';
 
 class VehicleController extends GetxController {
   final VehicleService _vehicleService = VehicleService();
+  late SocketService _socketService;
 
   final RxList<Vehicle> vehicles = <Vehicle>[].obs;
   final RxList<Vehicle> myVehicles = <Vehicle>[].obs;
@@ -13,6 +15,107 @@ class VehicleController extends GetxController {
   final RxBool isLoading = false.obs;
   final Rx<Vehicle?> selectedVehicle = Rx<Vehicle?>(null);
   final RxString currentFilter = 'all'.obs; // 'all', 'car', 'bike'
+  
+  // Real-time connection status
+  final RxBool isConnectedToRealtime = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initSocketService();
+  }
+
+  /// Initialize socket service for real-time updates
+  void _initSocketService() {
+    try {
+      _socketService = Get.find<SocketService>();
+      _setupSocketListeners();
+      print('✅ VehicleController: Socket service initialized');
+    } catch (e) {
+      print('⚠️ VehicleController: Socket service not available yet: $e');
+    }
+  }
+
+  /// Setup listeners for real-time vehicle events
+  void _setupSocketListeners() {
+    // Listen for vehicle approvals - add to home page list
+    _socketService.onVehicleApproved = (Vehicle vehicle) {
+      print('🚗 Real-time: Vehicle approved - ${vehicle.title}');
+      _addApprovedVehicle(vehicle);
+    };
+
+    // Listen for vehicle rejections - remove from lists
+    _socketService.onVehicleRejected = (int vehicleId) {
+      print('❌ Real-time: Vehicle rejected - $vehicleId');
+      _removeVehicle(vehicleId);
+    };
+
+    // Listen for vehicle sold events - update in lists
+    _socketService.onVehicleSold = (Vehicle vehicle) {
+      print('💰 Real-time: Vehicle sold - ${vehicle.title}');
+      _updateVehicleInList(vehicle);
+    };
+
+    // Listen for vehicle deletions
+    _socketService.onVehicleDeleted = (int vehicleId) {
+      print('🗑️ Real-time: Vehicle deleted - $vehicleId');
+      _removeVehicle(vehicleId);
+    };
+
+    // Track connection status
+    ever(_socketService.isConnected, (bool connected) {
+      isConnectedToRealtime.value = connected;
+      if (connected) {
+        print('🔌 VehicleController: Real-time updates enabled');
+      } else {
+        print('🔌 VehicleController: Real-time updates disabled');
+      }
+    });
+  }
+
+  /// Add an approved vehicle to the list (real-time update)
+  void _addApprovedVehicle(Vehicle vehicle) {
+    // Check if vehicle already exists to avoid duplicates
+    final existingIndex = vehicles.indexWhere((v) => v.id == vehicle.id);
+    if (existingIndex == -1) {
+      // Add to the beginning of the list (newest first)
+      vehicles.insert(0, vehicle);
+      _applyFilter();
+      
+      // Show notification
+      Get.snackbar(
+        '🚗 New Vehicle Available!',
+        '${vehicle.title} has been added',
+        duration: const Duration(seconds: 3),
+        snackPosition: SnackPosition.TOP,
+      );
+    } else {
+      // Update existing vehicle
+      vehicles[existingIndex] = vehicle;
+      _applyFilter();
+    }
+  }
+
+  /// Remove a vehicle from lists (rejected or deleted)
+  void _removeVehicle(int vehicleId) {
+    vehicles.removeWhere((v) => v.id == vehicleId);
+    filteredVehicles.removeWhere((v) => v.id == vehicleId);
+    myVehicles.removeWhere((v) => v.id == vehicleId);
+  }
+
+  /// Update a vehicle in the list
+  void _updateVehicleInList(Vehicle updatedVehicle) {
+    final index = vehicles.indexWhere((v) => v.id == updatedVehicle.id);
+    if (index != -1) {
+      vehicles[index] = updatedVehicle;
+      _applyFilter();
+    }
+
+    final myIndex = myVehicles.indexWhere((v) => v.id == updatedVehicle.id);
+    if (myIndex != -1) {
+      myVehicles[myIndex] = updatedVehicle;
+    }
+  }
 
   Future<void> loadVehicles({String? status}) async {
     try {
