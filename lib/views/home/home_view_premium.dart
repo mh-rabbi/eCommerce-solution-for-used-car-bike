@@ -15,8 +15,311 @@ import '../vehicle_list/vehicle_list_view.dart';
 import '../favorites/favorites_view.dart';
 import '../sell_history/sell_history_view.dart';
 
-class HomeViewPremium extends StatelessWidget {
+class HomeViewPremium extends StatefulWidget {
   const HomeViewPremium({super.key});
+
+  @override
+  State<HomeViewPremium> createState() => _HomeViewPremiumState();
+}
+
+class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProviderStateMixin {
+  late final AnimationController _searchAnimationController;
+  late final Animation<double> _searchWidthAnimation;
+  late final TextEditingController _searchController;
+  
+  bool _isSearchExpanded = false;
+  RangeValues _priceRange = const RangeValues(0, 10000000);
+  bool _isPriceFilterActive = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _searchAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _searchWidthAnimation = CurvedAnimation(
+      parent: _searchAnimationController,
+      curve: Curves.easeInOutCubic,
+    );
+    _searchController = TextEditingController();
+    
+    // Add listener to update UI when text changes
+    _searchController.addListener(() {
+      setState(() {});
+    });
+    
+    // Initialize price range from controller
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vehicleController = Get.find<VehicleController>();
+      if (vehicleController.vehicles.isNotEmpty) {
+        setState(() {
+          _priceRange = RangeValues(
+            vehicleController.minVehiclePrice,
+            vehicleController.maxVehiclePrice,
+          );
+        });
+      }
+    });
+  }
+  
+  @override
+  void dispose() {
+    _searchAnimationController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+  
+  void _toggleSearch() {
+    setState(() {
+      _isSearchExpanded = !_isSearchExpanded;
+    });
+    if (_isSearchExpanded) {
+      _searchAnimationController.forward();
+    } else {
+      _searchAnimationController.reverse();
+      _searchController.clear();
+      Get.find<VehicleController>().clearSearch();
+    }
+  }
+  
+  void _showPriceFilterSheet() {
+    final vehicleController = Get.find<VehicleController>();
+    final minPrice = vehicleController.minVehiclePrice;
+    final maxPrice = vehicleController.maxVehiclePrice;
+    
+    // Initialize with current filter values or default to full range
+    RangeValues currentRange = RangeValues(
+      vehicleController.minPriceFilter.value ?? minPrice,
+      vehicleController.maxPriceFilter.value ?? maxPrice,
+    );
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: const EdgeInsets.all(AppTheme.spacingLG),
+          decoration: const BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(AppTheme.radiusXLarge),
+              topRight: Radius.circular(AppTheme.radiusXLarge),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingLG),
+              
+              // Title
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Filter by Price',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (_isPriceFilterActive)
+                    TextButton(
+                      onPressed: () {
+                        vehicleController.clearPriceFilter();
+                        setState(() {
+                          _isPriceFilterActive = false;
+                          _priceRange = RangeValues(minPrice, maxPrice);
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Clear Filter',
+                        style: TextStyle(color: AppTheme.error),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingMD),
+              
+              // Price range display
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingMD),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Min Price',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          'BDT ${currentRange.start.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingSM,
+                        vertical: AppTheme.spacingXS,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                      ),
+                      child: const Text(
+                        'to',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Max Price',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          'BDT ${currentRange.end.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingLG),
+              
+              // Range Slider
+              SliderTheme(
+                data: SliderThemeData(
+                  activeTrackColor: AppTheme.primary,
+                  inactiveTrackColor: AppTheme.primary.withOpacity(0.2),
+                  thumbColor: AppTheme.primary,
+                  overlayColor: AppTheme.primary.withOpacity(0.1),
+                  rangeThumbShape: const RoundRangeSliderThumbShape(
+                    enabledThumbRadius: 12,
+                    elevation: 4,
+                  ),
+                  rangeTrackShape: const RoundedRectRangeSliderTrackShape(),
+                  trackHeight: 6,
+                ),
+                child: RangeSlider(
+                  values: currentRange,
+                  min: minPrice,
+                  max: maxPrice,
+                  divisions: 100,
+                  onChanged: (values) {
+                    setModalState(() {
+                      currentRange = values;
+                    });
+                  },
+                ),
+              ),
+              
+              // Price labels
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSM),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'BDT ${minPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      'BDT ${maxPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingLG),
+              
+              // Apply button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    vehicleController.setPriceRange(
+                      currentRange.start,
+                      currentRange.end,
+                    );
+                    setState(() {
+                      _priceRange = currentRange;
+                      _isPriceFilterActive = true;
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Apply Filter',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + AppTheme.spacingSM),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +352,8 @@ class HomeViewPremium extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, AuthController authController) {
+    final vehicleController = Get.find<VehicleController>();
+    
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppTheme.spacingLG,
@@ -70,54 +375,209 @@ class HomeViewPremium extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Menu Icon
-              Builder(
-                builder: (scaffoldContext) => IconButton(
-                  icon: const Icon(Icons.menu_rounded, color: Colors.white),
-                  onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms)
-                    .scale(delay: 100.ms),
+              // Menu Icon - Hidden when search is expanded
+              AnimatedBuilder(
+                animation: _searchWidthAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: 1.0 - (_searchWidthAnimation.value * 0.3),
+                    child: Opacity(
+                      opacity: 1.0 - _searchWidthAnimation.value,
+                      child: Builder(
+                        builder: (scaffoldContext) => _searchWidthAnimation.value < 0.5
+                            ? IconButton(
+                                icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                                onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                              )
+                                  .animate()
+                                  .fadeIn(duration: 300.ms)
+                                  .scale(delay: 100.ms)
+                            : const SizedBox(width: 48),
+                      ),
+                    ),
+                  );
+                },
               ),
               
-              // Search Icon
-              IconButton(
-                icon: const Icon(Icons.search_rounded, color: Colors.white),
-                onPressed: () {
-                  // TODO: Implement search
-                },
-              )
-                  .animate()
-                  .fadeIn(duration: 300.ms)
-                  .scale(delay: 200.ms),
+              // Animated Search Bar
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: _searchWidthAnimation,
+                  builder: (context, child) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // Search TextField
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOutCubic,
+                            width: _isSearchExpanded
+                                ? MediaQuery.of(context).size.width * 0.65
+                                : 0,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: _isSearchExpanded
+                                ? Row(
+                                    children: [
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          autofocus: true,
+                                          style: const TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 15,
+                                          ),
+                                          decoration: InputDecoration(
+                                            hintText: 'Search vehicles...',
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 15,
+                                            ),
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                          onChanged: (value) {
+                                            vehicleController.updateSearchQuery(value);
+                                          },
+                                        ),
+                                      ),
+                                      // Clear button
+                                      if (_searchController.text.isNotEmpty)
+                                        GestureDetector(
+                                          onTap: () {
+                                            _searchController.clear();
+                                            vehicleController.clearSearch();
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.grey[600],
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      // Filter button
+                                      GestureDetector(
+                                        onTap: _showPriceFilterSheet,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: _isPriceFilterActive
+                                                ? AppTheme.primary
+                                                : AppTheme.primary.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Icon(
+                                            Icons.tune_rounded,
+                                            color: _isPriceFilterActive
+                                                ? Colors.white
+                                                : AppTheme.primary,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                  )
+                                : const SizedBox(),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Search/Close Icon Button
+                        GestureDetector(
+                          onTap: _toggleSearch,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: _isSearchExpanded
+                                  ? Colors.white.withOpacity(0.2)
+                                  : Colors.transparent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _isSearchExpanded
+                                  ? Icons.close_rounded
+                                  : Icons.search_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        )
+                            .animate(target: _isSearchExpanded ? 1 : 0)
+                            .rotate(begin: 0, end: 0.5, duration: 300.ms),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          Obx(() => Text(
-                'Hello, ${authController.currentUser.value?.name ?? "User"} 👋',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-              ))
-              .animate()
-              .fadeIn(delay: 200.ms, duration: 600.ms)
-              .slideX(begin: -0.2, end: 0, duration: 600.ms),
-          const SizedBox(height: 8),
-          const Text(
-            'Find your perfect vehicle',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
+          
+          // Hide greeting when search is expanded
+          AnimatedCrossFade(
+            firstChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                Obx(() => Text(
+                      'Hello, ${authController.currentUser.value?.name ?? "User"} 👋',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                    ))
+                    .animate()
+                    .fadeIn(delay: 200.ms, duration: 600.ms)
+                    .slideX(begin: -0.2, end: 0, duration: 600.ms),
+                const SizedBox(height: 8),
+                const Text(
+                  'Find your perfect vehicle',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 300.ms, duration: 600.ms)
+                    .slideX(begin: -0.2, end: 0, duration: 600.ms),
+              ],
             ),
-          )
-              .animate()
-              .fadeIn(delay: 300.ms, duration: 600.ms)
-              .slideX(begin: -0.2, end: 0, duration: 600.ms),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Obx(() {
+                final count = vehicleController.filteredVehicles.length;
+                final hasFilters = vehicleController.searchQuery.value.isNotEmpty ||
+                    _isPriceFilterActive;
+                return Text(
+                  hasFilters
+                      ? '$count vehicle${count != 1 ? 's' : ''} found'
+                      : 'Search by name, brand...',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                );
+              }),
+            ),
+            crossFadeState: _isSearchExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
+          ),
         ],
       ),
     );

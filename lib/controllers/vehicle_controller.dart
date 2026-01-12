@@ -16,6 +16,12 @@ class VehicleController extends GetxController {
   final Rx<Vehicle?> selectedVehicle = Rx<Vehicle?>(null);
   final RxString currentFilter = 'all'.obs; // 'all', 'car', 'bike'
   
+  // Search and filter functionality
+  final RxString searchQuery = ''.obs;
+  final Rx<double?> minPriceFilter = Rx<double?>(null);
+  final Rx<double?> maxPriceFilter = Rx<double?>(null);
+  final RxBool isSearchActive = false.obs;
+  
   // Real-time connection status
   final RxBool isConnectedToRealtime = false.obs;
 
@@ -250,21 +256,86 @@ class VehicleController extends GetxController {
     _applyFilter();
   }
 
+  // Search functionality
+  void updateSearchQuery(String query) {
+    searchQuery.value = query;
+    _applyFilter();
+  }
+
+  void toggleSearch() {
+    isSearchActive.value = !isSearchActive.value;
+    if (!isSearchActive.value) {
+      // Clear search when closing
+      searchQuery.value = '';
+      _applyFilter();
+    }
+  }
+
+  void clearSearch() {
+    searchQuery.value = '';
+    _applyFilter();
+  }
+
+  // Price range filter
+  void setPriceRange(double? minPrice, double? maxPrice) {
+    minPriceFilter.value = minPrice;
+    maxPriceFilter.value = maxPrice;
+    _applyFilter();
+  }
+
+  void clearPriceFilter() {
+    minPriceFilter.value = null;
+    maxPriceFilter.value = null;
+    _applyFilter();
+  }
+
+  // Get price range from all vehicles
+  double get minVehiclePrice {
+    if (vehicles.isEmpty) return 0;
+    return vehicles.map((v) => v.price).reduce((a, b) => a < b ? a : b);
+  }
+
+  double get maxVehiclePrice {
+    if (vehicles.isEmpty) return 1000000;
+    return vehicles.map((v) => v.price).reduce((a, b) => a > b ? a : b);
+  }
+
   void _applyFilter() {
+    List<Vehicle> result = vehicles.toList();
+    
+    // Apply type filter
     switch (currentFilter.value) {
       case 'car':
-        filteredVehicles.value = vehicles.where((vehicle) =>
+        result = result.where((vehicle) =>
             vehicle.type.toLowerCase() == 'car').toList();
         break;
       case 'bike':
-        filteredVehicles.value = vehicles.where((vehicle) =>
+        result = result.where((vehicle) =>
             vehicle.type.toLowerCase() == 'bike' ||
             vehicle.type.toLowerCase() == 'motorcycle').toList();
         break;
-      default:
-        filteredVehicles.value = vehicles.toList();
-        break;
     }
+    
+    // Apply search query filter
+    if (searchQuery.value.isNotEmpty) {
+      final query = searchQuery.value.toLowerCase();
+      result = result.where((vehicle) =>
+          vehicle.title.toLowerCase().contains(query) ||
+          vehicle.brand.toLowerCase().contains(query) ||
+          vehicle.description.toLowerCase().contains(query)).toList();
+    }
+    
+    // Apply price range filter
+    if (minPriceFilter.value != null) {
+      result = result.where((vehicle) =>
+          vehicle.price >= minPriceFilter.value!).toList();
+    }
+    if (maxPriceFilter.value != null) {
+      result = result.where((vehicle) =>
+          vehicle.price <= maxPriceFilter.value!).toList();
+    }
+    
+    filteredVehicles.value = result;
   }
 
   // CRITICAL FIX: Centralized error handling
