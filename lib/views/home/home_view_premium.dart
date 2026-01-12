@@ -532,11 +532,11 @@ class HomeViewPremium extends StatelessWidget {
                       },
                     ),
                     _buildDrawerItem(
-                      Icons.settings_rounded,
-                      'Settings',
+                      Icons.contact_support_outlined,
+                      'Support',
                       () {
                         Get.back();
-                        Get.toNamed('/profile');
+                        Get.toNamed('/support');
                       },
                     ),
                     const Divider(height: 32),
