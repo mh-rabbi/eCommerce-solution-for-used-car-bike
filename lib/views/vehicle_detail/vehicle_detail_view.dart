@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/favorite_controller.dart';
 import '../../models/vehicle.dart';
 import '../../core/theme/app_theme.dart';
+import '../seller_profile/seller_profile_view.dart';
 
 class VehicleDetailView extends StatelessWidget {
   const VehicleDetailView({super.key});
@@ -230,9 +232,7 @@ class VehicleDetailView extends StatelessWidget {
                           ),
                           IconButton(
                             icon: const Icon(Icons.phone, color: AppTheme.primary),
-                            onPressed: () {
-                              // TODO: Implement call functionality
-                            },
+                            onPressed: () => _makePhoneCall(vehicle.seller!['phone']),
                           ),
                         ],
                       ),
@@ -245,9 +245,21 @@ class VehicleDetailView extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            // TODO: Implement contact seller
+                            if (vehicle.seller != null) {
+                              Get.to(() => const SellerProfileView(), arguments: vehicle.seller);
+                            } else {
+                              Get.snackbar(
+                                'Seller Info Unavailable',
+                                'Unable to load seller information',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppTheme.error.withOpacity(0.9),
+                                colorText: Colors.white,
+                                margin: const EdgeInsets.all(16),
+                                borderRadius: 12,
+                              );
+                            }
                           },
-                          icon: const Icon(Icons.message),
+                          icon: const Icon(Icons.person),
                           label: const Text('Contact Seller'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.primary,
@@ -286,5 +298,47 @@ class VehicleDetailView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _makePhoneCall(String? phoneNumber) async {
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      Get.snackbar(
+        'Phone Not Available',
+        'Seller has not provided a phone number',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.error.withOpacity(0.9),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+      return;
+    }
+
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        Get.snackbar(
+          'Cannot Make Call',
+          'Unable to open phone dialer',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.error.withOpacity(0.9),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to make phone call',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.error.withOpacity(0.9),
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+    }
   }
 }
