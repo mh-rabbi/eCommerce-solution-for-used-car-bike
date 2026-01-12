@@ -71,13 +71,15 @@ class HomeViewPremium extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Menu Icon
-              IconButton(
-                icon: const Icon(Icons.menu_rounded, color: Colors.white),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              )
-                  .animate()
-                  .fadeIn(duration: 300.ms)
-                  .scale(delay: 100.ms),
+              Builder(
+                builder: (scaffoldContext) => IconButton(
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                  onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
+                )
+                    .animate()
+                    .fadeIn(duration: 300.ms)
+                    .scale(delay: 100.ms),
+              ),
               
               // Search Icon
               IconButton(
