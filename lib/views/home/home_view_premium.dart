@@ -22,15 +22,16 @@ class HomeViewPremium extends StatefulWidget {
   State<HomeViewPremium> createState() => _HomeViewPremiumState();
 }
 
-class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProviderStateMixin {
+class _HomeViewPremiumState extends State<HomeViewPremium>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _searchAnimationController;
   late final Animation<double> _searchWidthAnimation;
   late final TextEditingController _searchController;
-  
+
   bool _isSearchExpanded = false;
   RangeValues _priceRange = const RangeValues(0, 10000000);
   bool _isPriceFilterActive = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -43,12 +44,12 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
       curve: Curves.easeInOutCubic,
     );
     _searchController = TextEditingController();
-    
+
     // Add listener to update UI when text changes
     _searchController.addListener(() {
       setState(() {});
     });
-    
+
     // Initialize price range from controller
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vehicleController = Get.find<VehicleController>();
@@ -62,14 +63,14 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
       }
     });
   }
-  
+
   @override
   void dispose() {
     _searchAnimationController.dispose();
     _searchController.dispose();
     super.dispose();
   }
-  
+
   void _toggleSearch() {
     setState(() {
       _isSearchExpanded = !_isSearchExpanded;
@@ -82,18 +83,18 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
       Get.find<VehicleController>().clearSearch();
     }
   }
-  
+
   void _showPriceFilterSheet() {
     final vehicleController = Get.find<VehicleController>();
     final minPrice = vehicleController.minVehiclePrice;
     final maxPrice = vehicleController.maxVehiclePrice;
-    
+
     // Initialize with current filter values or default to full range
     RangeValues currentRange = RangeValues(
       vehicleController.minPriceFilter.value ?? minPrice,
       vehicleController.maxPriceFilter.value ?? maxPrice,
     );
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -124,7 +125,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLG),
-              
+
               // Title
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -155,7 +156,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                 ],
               ),
               const SizedBox(height: AppTheme.spacingMD),
-              
+
               // Price range display
               Container(
                 padding: const EdgeInsets.all(AppTheme.spacingMD),
@@ -171,10 +172,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                       children: [
                         const Text(
                           'Min Price',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         Text(
                           'BDT ${currentRange.start.toStringAsFixed(0)}',
@@ -193,7 +191,9 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.radiusSmall,
+                        ),
                       ),
                       child: const Text(
                         'to',
@@ -208,10 +208,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                       children: [
                         const Text(
                           'Max Price',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         Text(
                           'BDT ${currentRange.end.toStringAsFixed(0)}',
@@ -227,7 +224,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLG),
-              
+
               // Range Slider
               SliderTheme(
                 data: SliderThemeData(
@@ -254,32 +251,28 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                   },
                 ),
               ),
-              
+
               // Price labels
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSM),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSM,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'BDT ${minPrice.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                     Text(
                       'BDT ${maxPrice.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLG),
-              
+
               // Apply button
               SizedBox(
                 width: double.infinity,
@@ -300,20 +293,22 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMedium,
+                      ),
                     ),
                     elevation: 0,
                   ),
                   child: const Text(
                     'Apply Filter',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + AppTheme.spacingSM),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).padding.bottom + AppTheme.spacingSM,
+              ),
             ],
           ),
         ),
@@ -330,18 +325,14 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
     return Scaffold(
       drawer: _buildDrawer(context, authController),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.subtleGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.subtleGradient),
         child: SafeArea(
           child: Column(
             children: [
               // Elegant Header
               _buildHeader(context, authController),
               // Vehicle List with Staggered Animation
-              Expanded(
-                child: _buildVehicleList(context, vehicleController),
-              ),
+              Expanded(child: _buildVehicleList(context, vehicleController)),
               // Floating Quick Actions
               _buildQuickActions(context),
             ],
@@ -353,7 +344,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
 
   Widget _buildHeader(BuildContext context, AuthController authController) {
     final vehicleController = Get.find<VehicleController>();
-    
+
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppTheme.spacingLG,
@@ -384,11 +375,17 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     child: Opacity(
                       opacity: 1.0 - _searchWidthAnimation.value,
                       child: Builder(
-                        builder: (scaffoldContext) => _searchWidthAnimation.value < 0.5
+                        builder: (scaffoldContext) =>
+                            _searchWidthAnimation.value < 0.5
                             ? IconButton(
-                                icon: const Icon(Icons.menu_rounded, color: Colors.white),
-                                onPressed: () => Scaffold.of(scaffoldContext).openDrawer(),
-                              )
+                                    icon: const Icon(
+                                      Icons.menu_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () => Scaffold.of(
+                                      scaffoldContext,
+                                    ).openDrawer(),
+                                  )
                                   .animate()
                                   .fadeIn(duration: 300.ms)
                                   .scale(delay: 100.ms)
@@ -398,7 +395,8 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                   );
                 },
               ),
-              
+
+              // Animated Search Bar
               // Animated Search Bar
               Expanded(
                 child: AnimatedBuilder(
@@ -407,112 +405,128 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Search TextField
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOutCubic,
-                            width: _isSearchExpanded
-                                ? MediaQuery.of(context).size.width * 0.65
-                                : 0,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(25),
+                        // Using Flexible instead of just AnimatedContainer ensures it stays within Row bounds
+                        if (_isSearchExpanded)
+                          Flexible(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOutCubic,
+                              // Reduced multiplier slightly for safety buffer
+                              width: MediaQuery.of(context).size.width * 0.62,
+                              height:
+                                  40, // Slightly reduced height to fit header better
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 10),
+                                  const Icon(
+                                    Icons.search,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _searchController,
+                                      autofocus: true,
+                                      style: const TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 14,
+                                      ),
+                                      decoration: const InputDecoration(
+                                        hintText: 'Search...',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                        ),
+                                        border: InputBorder.none,
+                                        isDense:
+                                            true, // Fixes internal vertical overflow
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      onChanged: (value) {
+                                        vehicleController.updateSearchQuery(
+                                          value,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  // Clear button
+                                  if (_searchController.text.isNotEmpty)
+                                    IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 30,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.close,
+                                        size: 18,
+                                        color: Colors.grey,
+                                      ),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        vehicleController.clearSearch();
+                                      },
+                                    ),
+                                  // Filter button
+                                  GestureDetector(
+                                    onTap: _showPriceFilterSheet,
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 6),
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: _isPriceFilterActive
+                                            ? AppTheme.primary
+                                            : AppTheme.primary.withOpacity(0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.tune_rounded,
+                                        color: _isPriceFilterActive
+                                            ? Colors.white
+                                            : AppTheme.primary,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: _isSearchExpanded
-                                ? Row(
-                                    children: [
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _searchController,
-                                          autofocus: true,
-                                          style: const TextStyle(
-                                            color: Colors.black87,
-                                            fontSize: 15,
-                                          ),
-                                          decoration: InputDecoration(
-                                            hintText: 'Search vehicles...',
-                                            hintStyle: TextStyle(
-                                              color: Colors.grey[400],
-                                              fontSize: 15,
-                                            ),
-                                            border: InputBorder.none,
-                                            contentPadding: EdgeInsets.zero,
-                                          ),
-                                          onChanged: (value) {
-                                            vehicleController.updateSearchQuery(value);
-                                          },
-                                        ),
-                                      ),
-                                      // Clear button
-                                      if (_searchController.text.isNotEmpty)
-                                        GestureDetector(
-                                          onTap: () {
-                                            _searchController.clear();
-                                            vehicleController.clearSearch();
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Icon(
-                                              Icons.close,
-                                              color: Colors.grey[600],
-                                              size: 20,
-                                            ),
-                                          ),
-                                        ),
-                                      // Filter button
-                                      GestureDetector(
-                                        onTap: _showPriceFilterSheet,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: _isPriceFilterActive
-                                                ? AppTheme.primary
-                                                : AppTheme.primary.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                          child: Icon(
-                                            Icons.tune_rounded,
-                                            color: _isPriceFilterActive
-                                                ? Colors.white
-                                                : AppTheme.primary,
-                                            size: 20,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                    ],
-                                  )
-                                : const SizedBox(),
                           ),
-                        ),
 
                         const SizedBox(width: 8),
 
                         // Search/Close Icon Button
                         GestureDetector(
-                          onTap: _toggleSearch,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: _isSearchExpanded
-                                  ? Colors.white.withOpacity(0.2)
-                                  : Colors.transparent,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              _isSearchExpanded
-                                  ? Icons.close_rounded
-                                  : Icons.search_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                        )
+                              onTap: _toggleSearch,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _isSearchExpanded
+                                      ? Colors.white.withOpacity(0.2)
+                                      : Colors.transparent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _isSearchExpanded
+                                      ? Icons.close_rounded
+                                      : Icons.search_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            )
                             .animate(target: _isSearchExpanded ? 1 : 0)
                             .rotate(begin: 0, end: 0.5, duration: 300.ms),
                       ],
@@ -522,34 +536,36 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
               ),
             ],
           ),
-          
+
           // Hide greeting when search is expanded
           AnimatedCrossFade(
             firstChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                Obx(() => Text(
-                      'Hello, ${authController.currentUser.value?.name ?? "User"} 👋',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
+                Obx(
+                      () => Text(
+                        'Hello, ${authController.currentUser.value?.name ?? "User"} 👋',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ))
+                    )
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 600.ms)
                     .slideX(begin: -0.2, end: 0, duration: 600.ms),
                 const SizedBox(height: 8),
                 const Text(
-                  'Find your perfect vehicle',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                  ),
-                )
+                      'Find your perfect vehicle',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    )
                     .animate()
                     .fadeIn(delay: 300.ms, duration: 600.ms)
                     .slideX(begin: -0.2, end: 0, duration: 600.ms),
@@ -559,7 +575,8 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
               padding: const EdgeInsets.only(top: 16),
               child: Obx(() {
                 final count = vehicleController.filteredVehicles.length;
-                final hasFilters = vehicleController.searchQuery.value.isNotEmpty ||
+                final hasFilters =
+                    vehicleController.searchQuery.value.isNotEmpty ||
                     _isPriceFilterActive;
                 return Text(
                   hasFilters
@@ -584,7 +601,9 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
   }
 
   Widget _buildVehicleList(
-      BuildContext context, VehicleController vehicleController) {
+    BuildContext context,
+    VehicleController vehicleController,
+  ) {
     return Obx(() {
       if (vehicleController.isLoading.value) {
         return ListView.builder(
@@ -625,9 +644,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                   duration: const Duration(milliseconds: 375),
                   columnCount: crossAxisCount,
                   child: ScaleAnimation(
-                    child: FadeInAnimation(
-                      child: _buildVehicleCard(vehicle),
-                    ),
+                    child: FadeInAnimation(child: _buildVehicleCard(vehicle)),
                   ),
                 );
               },
@@ -684,23 +701,26 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                         shape: BoxShape.circle,
                         boxShadow: AppTheme.shadow1,
                       ),
-                      child: Obx(() => IconButton(
-                        icon: Icon(
-                          favoriteController.favoriteStatus[vehicle.id] == true
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          size: 18,
+                      child: Obx(
+                        () => IconButton(
+                          icon: Icon(
+                            favoriteController.favoriteStatus[vehicle.id] ==
+                                    true
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                          ),
+                          onPressed: () {
+                            favoriteController.toggleFavorite(vehicle.id);
+                          },
+                          color: Colors.red,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 36,
+                          ),
                         ),
-                        onPressed: () {
-                          favoriteController.toggleFavorite(vehicle.id);
-                        },
-                        color: Colors.red,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                      )),
+                      ),
                     ),
                   ),
                 ],
@@ -736,10 +756,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     height: 16,
                     child: Text(
                       '${vehicle.brand} • ${vehicle.type}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -767,56 +784,61 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
 
   Widget _buildQuickActions(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(AppTheme.spacingMD),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMD,
-        vertical: AppTheme.spacingSM,
-      ),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: AppTheme.shadow2,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildQuickAction(Icons.add_circle, 'Sell', () {
-            Get.toNamed('/post-vehicle');
-          }),
-          Obx(() {
-            final vehicleController = Get.find<VehicleController>();
-            return _buildQuickAction(
-              Icons.directions_car,
-              'Cars',
-              () => vehicleController.filterByType('car'),
-              isSelected: vehicleController.currentFilter.value == 'car',
-            );
-          }),
-          Obx(() {
-            final vehicleController = Get.find<VehicleController>();
-            return _buildQuickAction(
-              Icons.two_wheeler,
-              'Bikes',
-              () => vehicleController.filterByType('bike'),
-              isSelected: vehicleController.currentFilter.value == 'bike',
-            );
-          }),
-          _buildQuickAction(Icons.list, 'All', () {
-            final vehicleController = Get.find<VehicleController>();
-            vehicleController.showAllVehicles();
-          }),
-          _buildQuickAction(Icons.favorite, 'Favorites', () {
-            Get.toNamed('/favorites');
-          }),
-        ],
-      ),
-    )
+          margin: const EdgeInsets.all(AppTheme.spacingMD),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingMD,
+            vertical: AppTheme.spacingSM,
+          ),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: AppTheme.shadow2,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildQuickAction(Icons.add_circle, 'Sell', () {
+                Get.toNamed('/post-vehicle');
+              }),
+              Obx(() {
+                final vehicleController = Get.find<VehicleController>();
+                return _buildQuickAction(
+                  Icons.directions_car,
+                  'Cars',
+                  () => vehicleController.filterByType('car'),
+                  isSelected: vehicleController.currentFilter.value == 'car',
+                );
+              }),
+              Obx(() {
+                final vehicleController = Get.find<VehicleController>();
+                return _buildQuickAction(
+                  Icons.two_wheeler,
+                  'Bikes',
+                  () => vehicleController.filterByType('bike'),
+                  isSelected: vehicleController.currentFilter.value == 'bike',
+                );
+              }),
+              _buildQuickAction(Icons.list, 'All', () {
+                final vehicleController = Get.find<VehicleController>();
+                vehicleController.showAllVehicles();
+              }),
+              _buildQuickAction(Icons.favorite, 'Favorites', () {
+                Get.toNamed('/favorites');
+              }),
+            ],
+          ),
+        )
         .animate()
         .fadeIn(delay: 200.ms, duration: 400.ms)
         .slideY(begin: 0.3, end: 0, duration: 400.ms);
   }
 
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap, {bool isSelected = false}) {
+  Widget _buildQuickAction(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    bool isSelected = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -829,7 +851,9 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                   ? AppTheme.primary
                   : AppTheme.primary.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: isSelected ? Border.all(color: AppTheme.primary, width: 2) : null,
+              border: isSelected
+                  ? Border.all(color: AppTheme.primary, width: 2)
+                  : null,
             ),
             child: Icon(
               icon,
@@ -853,12 +877,10 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
 
   Widget _buildDrawer(BuildContext context, AuthController authController) {
     final userService = UserService();
-    
+
     return Drawer(
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
         child: Column(
           children: [
             // Drawer Header
@@ -878,7 +900,7 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     final profileImageUrl = user?.profileImage != null
                         ? userService.getProfileImageUrl(user!.profileImage)
                         : '';
-                    
+
                     return GestureDetector(
                       onTap: () {
                         Get.back();
@@ -902,20 +924,21 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                                   height: 80,
                                   errorBuilder: (context, error, stackTrace) =>
                                       const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: AppTheme.primary,
-                                  ),
+                                        Icons.person,
+                                        size: 50,
+                                        color: AppTheme.primary,
+                                      ),
                                   loadingBuilder:
                                       (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(
-                                        color: AppTheme.primary,
-                                        strokeWidth: 2,
-                                      ),
-                                    );
-                                  },
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(
+                                            color: AppTheme.primary,
+                                            strokeWidth: 2,
+                                          ),
+                                        );
+                                      },
                                 )
                               : const Icon(
                                   Icons.person,
@@ -927,22 +950,26 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                     );
                   }),
                   const SizedBox(height: 16),
-                  Obx(() => Text(
-                        authController.currentUser.value?.name ?? 'User',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      )),
+                  Obx(
+                    () => Text(
+                      authController.currentUser.value?.name ?? 'User',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Obx(() => Text(
-                        authController.currentUser.value?.email ?? '',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 14,
-                        ),
-                      )),
+                  Obx(
+                    () => Text(
+                      authController.currentUser.value?.email ?? '',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -959,22 +986,14 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                 child: ListView(
                   padding: const EdgeInsets.only(top: AppTheme.spacingLG),
                   children: [
-                    _buildDrawerItem(
-                      Icons.home_rounded,
-                      'Home',
-                      () {
-                        Get.back();
-                        Get.offAllNamed('/home');
-                      },
-                    ),
-                    _buildDrawerItem(
-                      Icons.person_rounded,
-                      'Profile',
-                      () {
-                        Get.back();
-                        Get.toNamed('/profile');
-                      },
-                    ),
+                    _buildDrawerItem(Icons.home_rounded, 'Home', () {
+                      Get.back();
+                      Get.offAllNamed('/home');
+                    }),
+                    _buildDrawerItem(Icons.person_rounded, 'Profile', () {
+                      Get.back();
+                      Get.toNamed('/profile');
+                    }),
                     _buildDrawerItem(
                       Icons.notifications_rounded,
                       'Notifications',
@@ -983,14 +1002,10 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                         Get.toNamed('/checkout');
                       },
                     ),
-                    _buildDrawerItem(
-                      Icons.history_rounded,
-                      'Sell History',
-                      () {
-                        Get.back();
-                        Get.toNamed('/sell-history');
-                      },
-                    ),
+                    _buildDrawerItem(Icons.history_rounded, 'Sell History', () {
+                      Get.back();
+                      Get.toNamed('/sell-history');
+                    }),
                     _buildDrawerItem(
                       Icons.contact_support_outlined,
                       'Support',
@@ -1000,15 +1015,10 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
                       },
                     ),
                     const Divider(height: 32),
-                    _buildDrawerItem(
-                      Icons.logout_rounded,
-                      'Logout',
-                      () {
-                        Get.back();
-                        authController.logout();
-                      },
-                      isDestructive: true,
-                    ),
+                    _buildDrawerItem(Icons.logout_rounded, 'Logout', () {
+                      Get.back();
+                      authController.logout();
+                    }, isDestructive: true),
                   ],
                 ),
               ),
@@ -1044,4 +1054,3 @@ class _HomeViewPremiumState extends State<HomeViewPremium> with SingleTickerProv
     );
   }
 }
-
