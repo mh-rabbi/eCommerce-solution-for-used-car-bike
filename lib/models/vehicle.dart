@@ -1,3 +1,5 @@
+import '../config/app_config.dart';
+
 class Vehicle {
   final int id;
   final int sellerId;
@@ -53,8 +55,13 @@ class Vehicle {
       type: json['type']?.toString() ?? '',
       price: parsePrice(json['price']),
       images: json['images'] != null 
-          ? (json['images'] is List 
-              ? List<String>.from(json['images'].map((img) => img.toString()))
+          ? (json['images'] is List
+              ? List<String>.from(json['images'].map((img) {
+                  final String imgStr = img.toString();
+                  if (imgStr.startsWith('http')) return imgStr;
+                  if (imgStr.startsWith('/')) return '${AppConfig.baseUrl}$imgStr';
+                  return '${AppConfig.baseUrl}/$imgStr';
+                }))
               : [])
           : [],
       status: json['status']?.toString() ?? 'pending',
