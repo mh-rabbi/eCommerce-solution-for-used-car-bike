@@ -13,6 +13,7 @@ import '../views/profile/profile_view_premium.dart';
 import '../views/profile/edit_profile_view.dart';
 import '../views/sell_history/sell_history_view.dart';
 import '../views/my_posts/my_posts_view.dart';
+import '../views/my_posts/payment_detail_view.dart';
 import '../views/vehicle_detail/vehicle_detail_view.dart';
 import '../views/support/support_view.dart';
 
@@ -31,8 +32,9 @@ class AppRoutes {
     GetPage(name: '/sell-history', page: () => const SellHistoryView()),
     GetPage(name: '/my-posts', page: () => const MyPostsView()),
     GetPage(name: '/vehicle-detail', page: () => const VehicleDetailView()),
-    GetPage(name: '/checkout', page: () => const CheckoutView()), // New checkout with SSLCommerz
+    GetPage(name: '/checkout', page: () => const CheckoutView()), 
     GetPage(name: '/support', page: () => const SupportView()),
+    GetPage(name: '/payment-detail', page: () => const PaymentDetailView()),
   ];
 }
 
@@ -51,4 +53,3 @@ class AuthWrapper extends StatelessWidget {
     });
   }
 }
-

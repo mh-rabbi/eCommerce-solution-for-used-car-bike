@@ -1,4 +1,5 @@
 import '../config/app_config.dart';
+import 'payment.dart';
 
 class Vehicle {
   final int id;
@@ -12,6 +13,7 @@ class Vehicle {
   final String status;
   final String? createdAt;
   final Map<String, dynamic>? seller;
+  final Payment? payment;
 
   Vehicle({
     required this.id,
@@ -25,6 +27,7 @@ class Vehicle {
     required this.status,
     this.createdAt,
     this.seller,
+    this.payment,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -67,6 +70,9 @@ class Vehicle {
       status: json['status']?.toString() ?? 'pending',
       createdAt: json['createdAt']?.toString(),
       seller: json['seller'] is Map ? Map<String, dynamic>.from(json['seller']) : null,
+      payment: (json['payments'] is List && (json['payments'] as List).isNotEmpty)
+          ? Payment.fromJson((json['payments'] as List).first)
+          : null,
     );
   }
 

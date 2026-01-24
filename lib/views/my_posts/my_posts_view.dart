@@ -252,9 +252,12 @@ class _MyPostsViewState extends State<MyPostsView> with SingleTickerProviderStat
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppTheme.shadow2,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: InkWell(
+        onTap: () => Get.toNamed('/payment-detail', arguments: vehicle),
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Image with status badge
           Stack(
             children: [
@@ -410,7 +413,8 @@ class _MyPostsViewState extends State<MyPostsView> with SingleTickerProviderStat
           ),
         ],
       ),
-    ).animate(delay: Duration(milliseconds: index * 100))
+    ),
+  ).animate(delay: Duration(milliseconds: index * 100))
       .fadeIn(duration: 400.ms)
       .slideY(begin: 0.1, end: 0, duration: 400.ms);
   }
