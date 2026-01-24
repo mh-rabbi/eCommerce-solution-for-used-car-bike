@@ -111,12 +111,20 @@ class VehicleController extends GetxController {
 
   /// Update a vehicle in the list
   void _updateVehicleInList(Vehicle updatedVehicle) {
-    final index = vehicles.indexWhere((v) => v.id == updatedVehicle.id);
-    if (index != -1) {
-      vehicles[index] = updatedVehicle;
-      _applyFilter();
+    // If vehicle is sold, remove it from the marketplace (home page)
+    if (updatedVehicle.status.toLowerCase() == 'sold') {
+      vehicles.removeWhere((v) => v.id == updatedVehicle.id);
+      filteredVehicles.removeWhere((v) => v.id == updatedVehicle.id);
+      print('💰 Real-time: Vehicle removed from marketplace because it was sold');
+    } else {
+      final index = vehicles.indexWhere((v) => v.id == updatedVehicle.id);
+      if (index != -1) {
+        vehicles[index] = updatedVehicle;
+        _applyFilter();
+      }
     }
 
+    // Always update in my vehicles list so the seller sees the status change
     final myIndex = myVehicles.indexWhere((v) => v.id == updatedVehicle.id);
     if (myIndex != -1) {
       myVehicles[myIndex] = updatedVehicle;
