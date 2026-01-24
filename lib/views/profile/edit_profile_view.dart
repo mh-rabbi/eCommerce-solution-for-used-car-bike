@@ -209,7 +209,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
 
     if (success) {
-      Get.back();
+      // Get.snackbar(
+      //   'Success',
+      //   'Profile updated successfully',
+      //   snackPosition: SnackPosition.BOTTOM,
+      //   backgroundColor: Colors.green,
+      //   colorText: Colors.white,
+      //   duration: const Duration(seconds: 2),
+      // );
+      Navigator.of(context).pop();
+
     }
   }
 

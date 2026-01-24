@@ -150,6 +150,7 @@ class _LoginViewPremiumState extends State<LoginViewPremium>
                       ),
                       child: TabBar(
                         controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
                         indicator: BoxDecoration(
                           gradient: AppTheme.primaryGradient,
                           borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
